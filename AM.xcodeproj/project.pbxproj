@@ -7,19 +7,32 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		282CFB682B2E6C3C00751B44 /* AMApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282CFB672B2E6C3C00751B44 /* AMApp.swift */; };
+		2825E1792B3A558900E0F10D /* Toolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2825E1782B3A558900E0F10D /* Toolbar.swift */; };
+		2825E17D2B3BEF9D00E0F10D /* PreviewAlbum.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2825E17C2B3BEF9D00E0F10D /* PreviewAlbum.swift */; };
 		282CFB6A2B2E6C3C00751B44 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282CFB692B2E6C3C00751B44 /* ContentView.swift */; };
 		282CFB6C2B2E6C3D00751B44 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 282CFB6B2B2E6C3D00751B44 /* Assets.xcassets */; };
 		282CFB6F2B2E6C3D00751B44 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 282CFB6E2B2E6C3D00751B44 /* Preview Assets.xcassets */; };
+		287EC3762B3264BA00FC81E8 /* MusicLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 287EC3752B3264BA00FC81E8 /* MusicLibrary.swift */; };
+		287EC3782B32779F00FC81E8 /* LoadMask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 287EC3772B32779F00FC81E8 /* LoadMask.swift */; };
+		287EC37C2B37553F00FC81E8 /* Queue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 287EC37B2B37553F00FC81E8 /* Queue.swift */; };
+		287EC37E2B375EFD00FC81E8 /* Browser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 287EC37D2B375EFD00FC81E8 /* Browser.swift */; };
+		287EC3802B37608B00FC81E8 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 287EC37F2B37608B00FC81E8 /* Player.swift */; };
+		28D132DF2C5E736300C534DA /* AMApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28D132DE2C5E736300C534DA /* AMApp.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2825E1782B3A558900E0F10D /* Toolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toolbar.swift; sourceTree = "<group>"; };
+		2825E17C2B3BEF9D00E0F10D /* PreviewAlbum.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewAlbum.swift; sourceTree = "<group>"; };
 		282CFB642B2E6C3C00751B44 /* AM.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AM.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		282CFB672B2E6C3C00751B44 /* AMApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMApp.swift; sourceTree = "<group>"; };
 		282CFB692B2E6C3C00751B44 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		282CFB6B2B2E6C3D00751B44 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		282CFB6E2B2E6C3D00751B44 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		282CFB702B2E6C3D00751B44 /* AM.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AM.entitlements; sourceTree = "<group>"; };
+		287EC3752B3264BA00FC81E8 /* MusicLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicLibrary.swift; sourceTree = "<group>"; };
+		287EC3772B32779F00FC81E8 /* LoadMask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadMask.swift; sourceTree = "<group>"; };
+		287EC37B2B37553F00FC81E8 /* Queue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Queue.swift; sourceTree = "<group>"; };
+		287EC37D2B375EFD00FC81E8 /* Browser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Browser.swift; sourceTree = "<group>"; };
+		287EC37F2B37608B00FC81E8 /* Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
+		28D132DE2C5E736300C534DA /* AMApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,10 +65,11 @@
 		282CFB662B2E6C3C00751B44 /* AM */ = {
 			isa = PBXGroup;
 			children = (
-				282CFB672B2E6C3C00751B44 /* AMApp.swift */,
+				287EC37A2B37552600FC81E8 /* Components */,
+				28D132DE2C5E736300C534DA /* AMApp.swift */,
+				282CFB782B31B5B400751B44 /* Script */,
 				282CFB692B2E6C3C00751B44 /* ContentView.swift */,
 				282CFB6B2B2E6C3D00751B44 /* Assets.xcassets */,
-				282CFB702B2E6C3D00751B44 /* AM.entitlements */,
 				282CFB6D2B2E6C3D00751B44 /* Preview Content */,
 			);
 			path = AM;
@@ -67,6 +81,27 @@
 				282CFB6E2B2E6C3D00751B44 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		282CFB782B31B5B400751B44 /* Script */ = {
+			isa = PBXGroup;
+			children = (
+				287EC3752B3264BA00FC81E8 /* MusicLibrary.swift */,
+			);
+			path = Script;
+			sourceTree = "<group>";
+		};
+		287EC37A2B37552600FC81E8 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				287EC3772B32779F00FC81E8 /* LoadMask.swift */,
+				287EC37B2B37553F00FC81E8 /* Queue.swift */,
+				287EC37D2B375EFD00FC81E8 /* Browser.swift */,
+				287EC37F2B37608B00FC81E8 /* Player.swift */,
+				2825E1782B3A558900E0F10D /* Toolbar.swift */,
+				2825E17C2B3BEF9D00E0F10D /* PreviewAlbum.swift */,
+			);
+			path = Components;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -139,8 +174,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				287EC3762B3264BA00FC81E8 /* MusicLibrary.swift in Sources */,
+				287EC3782B32779F00FC81E8 /* LoadMask.swift in Sources */,
+				287EC37E2B375EFD00FC81E8 /* Browser.swift in Sources */,
+				2825E1792B3A558900E0F10D /* Toolbar.swift in Sources */,
 				282CFB6A2B2E6C3C00751B44 /* ContentView.swift in Sources */,
-				282CFB682B2E6C3C00751B44 /* AMApp.swift in Sources */,
+				287EC3802B37608B00FC81E8 /* Player.swift in Sources */,
+				2825E17D2B3BEF9D00E0F10D /* PreviewAlbum.swift in Sources */,
+				28D132DF2C5E736300C534DA /* AMApp.swift in Sources */,
+				287EC37C2B37553F00FC81E8 /* Queue.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -270,13 +312,16 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = AM/AM.entitlements;
+				CODE_SIGN_ENTITLEMENTS = /Users/reidhtaylor/Documents/Projects/SwiftUI/AM/AM/AMRelease.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"AM/Preview Content\"";
+				DEVELOPMENT_TEAM = SAKV33F28A;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSAppleMusicUsageDescription = "";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -286,6 +331,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.scorpionstudios.AM;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_SUPPRESS_WARNINGS = NO;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -295,13 +341,17 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = AM/AM.entitlements;
+				CODE_SIGN_ENTITLEMENTS = /Users/reidhtaylor/Documents/Projects/SwiftUI/AM/AM/AMRelease.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "$(CODE_SIGN_IDENTITY_$(_DEVELOPMENT_TEAM_IS_EMPTY))";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"AM/Preview Content\"";
+				DEVELOPMENT_TEAM = SAKV33F28A;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSAppleMusicUsageDescription = "";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -311,6 +361,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.scorpionstudios.AM;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_SUPPRESS_WARNINGS = NO;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
