@@ -7,35 +7,7 @@
 
 import SwiftUI
 import AppKit
-//import iTunesLibrary
 import MusicKit
-
-struct FormatData {
-    let colorScheme: ColorData
-    
-    var queueWidth: CGFloat
-    let queueRestriction: CGSize = CGSize(width: 200, height: 550)
-    
-    let playerHeight: CGFloat
-    
-    let musicArtCorner: CGFloat
-    
-    let animPlaybackInterval = 0.4
-    
-    public init(colorScheme: ColorData, queueWidth: CGFloat, playerHeight: CGFloat, musicArtCorner: CGFloat) {
-        self.colorScheme = colorScheme
-        self.queueWidth = queueWidth
-        self.playerHeight = playerHeight
-        self.musicArtCorner = musicArtCorner
-    }
-}
-struct ColorData {
-    let mainColor: Color
-    let accentColor: Color
-    let deepColor: Color
-    
-    let accent: Color
-}
 
 struct MaterialBackground: NSViewRepresentable {
     func makeNSView(context: Context) -> NSVisualEffectView {
@@ -53,7 +25,7 @@ struct MaterialBackground: NSViewRepresentable {
 
 struct ContentView: View {
     @ObservedObject var library: MusicLibrary
-    @State var appFormat: FormatData
+    @State var appData: AppData
     
     enum Page : Int {
         case browser
@@ -69,22 +41,22 @@ struct ContentView: View {
                 HStack(spacing: 2) {
                     VStack(spacing:0) {
                         // Toolbar
-                        Toolbar(library:library, appFormat: appFormat)
+                        Toolbar(library:library, appData: appData)
                         
                         switch page {
                             case .browser:
-                                Browser(library: library, appFormat: appFormat, content: self)
+                                Browser(library: library, appData: appData, content: self)
                             case .songGroupPreview:
-                                PreviewAlbum(library: library, appFormat: appFormat, content: self)
+                                PreviewAlbum(library: library, appData: appData, content: self)
                         }
                     }
                     
                     // Queue
-                    Queue(library:library, appFormat: appFormat, content:self)
+                    Queue(library:library, appData: appData, content:self)
                 }
                 
                 // Player
-                Player(library: library, appFormat: appFormat, content: self, windowSize: geom.size)
+                Player(library: library, appData: appData, content: self, windowSize: geom.size)
             }
             .ignoresSafeArea()
         }
@@ -103,14 +75,18 @@ struct ContentView: View {
         HStack(alignment: .center, spacing: 15) {
             // Item Image
             if artwork == nil {
-                Image(nsImage: NSImage(imageLiteralResourceName: "UnknownAlbum"))
-                    .resizable()
-                    .frame(width: height, height:height)
-                    .cornerRadius(appFormat.musicArtCorner)
+                ZStack {
+                    MaterialBackground().colorMultiply(appData.colorScheme.mainColor)
+                        .cornerRadius(appData.appFormat.musicArtCorner)
+                    
+                    Image(systemName: "music.note").resizable().aspectRatio(contentMode: .fit).opacity(0.2)
+                        .frame(width:height / 3, height:height / 3)
+                }
+                .frame(width: height, height:height)
             }
             else {
                 ArtworkImage(artwork!, width: height, height: height)
-                    .cornerRadius(appFormat.musicArtCorner)
+                    .cornerRadius(appData.appFormat.musicArtCorner)
             }
             
             // Item Title (& subtitle)

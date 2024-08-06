@@ -26,9 +26,10 @@ final class MusicLibrary : ObservableObject {
     @Published var currentPlayback = 0.0
     var playbackTimer: Timer?
     
-    @Published var mostPlayed: Song?
+    @Published var favoriteItems: [Song] = []
+    @Published var mostPlayed: [Album] = []
     @Published var recentlyPlayed: [Album] = []
-    @Published var randomSongs: [Song] = []
+    @Published var shuffleSample: [Song] = []
     
     @Published var previewingAlbum: Album? = nil
     @Published var previewingPlaylist: Playlist? = nil
@@ -42,44 +43,34 @@ final class MusicLibrary : ObservableObject {
             if status != .authorized { return }
             
             do {
-                // Query Songs
                 self.loadDescription = "Querying Media"
+                
+                // Query Songs
                 let rqSongs = MusicLibraryRequest<Song>()
                 let resSongs = try await rqSongs.response()
                 self.songs = resSongs.items
                 
+                // Query Albums
                 let rqAlbums = MusicLibraryRequest<Album>()
                 let resAlbums = try await rqAlbums.response()
                 self.albums = resAlbums.items
                 
-                // Query Playlists
                 self.loadDescription = "Querying Collections"
+                
+                // Query Playlists
                 let rqPlaylists = MusicLibraryRequest<Playlist>()
                 let resPlaylists = (try await rqPlaylists.response()).items
                 for pl in resPlaylists {
                     self.playlists.append(pl)
                 }
                 
-                // Generate Random Queue
-                var queueItems: [Song] = []
-                for _ in 0..<6 { queueItems.append(songs.randomElement()!) }
-                
-                // Generate Random Browsing Data
+                // Generate Browsing Data
+                self.refreshMostPlayed()
                 self.refreshRecentlyPlayed()
-                self.refreshRandomSongs()
-                self.mostPlayed = songs[0]
+                self.refreshShuffleSample()
+                self.favoriteItems = [songs[0]]
                 
-                self.loadDescription = "Preparing Queue"
-                let v = Task {
-                    await playSong(songs.randomElement()!, getEntries(queueItems), begin: false)
-                    self.loaded = true
-                }
-                
-                try await Task.sleep(nanoseconds: 4_000_000_000)
-                if self.loaded == false {
-                    print("Didn't Load Correctly -- ••")
-                    v.cancel()
-                }
+                self.loaded = true
             }
             catch {
                 print("INIT ERROR:", error)
@@ -302,15 +293,25 @@ final class MusicLibrary : ObservableObject {
         }
     }
     
+    public func refreshMostPlayed() {
+        self.mostPlayed = []
+        while self.mostPlayed.count < 10 {
+            let item = albums[Int.random(in: 0..<albums.count)]
+            self.mostPlayed.append(item)
+        }
+    }
     public func refreshRecentlyPlayed() {
         self.recentlyPlayed = []
-        self.recentlyPlayed = Array<Album>(self.albums[..<10])
+        while self.recentlyPlayed.count < 10 {
+            let item = albums[Int.random(in: 0..<albums.count)]
+            self.recentlyPlayed.append(item)
+        }
     }
-    public func refreshRandomSongs() {
-        self.randomSongs = []
-        while self.randomSongs.count < 10 {
+    public func refreshShuffleSample() {
+        self.shuffleSample = []
+        while self.shuffleSample.count < 10 {
             let item = songs[Int.random(in: 0..<songs.count)]
-            self.randomSongs.append(item)
+            self.shuffleSample.append(item)
         }
     }
     

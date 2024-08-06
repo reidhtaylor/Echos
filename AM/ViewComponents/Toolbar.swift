@@ -11,14 +11,14 @@ import MusicKit
 struct Toolbar: View {
     
     var library: MusicLibrary
-    var appFormat: FormatData
+    var appData: AppData
     
     @State var searchText: String = ""
     @FocusState var searchFocused: Bool
     
     var body: some View {
         ZStack(alignment: .leading) {
-            MaterialBackground().colorMultiply(appFormat.colorScheme.deepColor).ignoresSafeArea()
+            MaterialBackground().colorMultiply(appData.colorScheme.deepColor).ignoresSafeArea()
             
             HStack(spacing: 10) {
                 Button(action: {}) {
@@ -28,7 +28,7 @@ struct Toolbar: View {
                 .buttonStyle(.plain)
 
                 ZStack {
-                    Rectangle().fill(LinearGradient(colors: [Color.clear, appFormat.colorScheme.mainColor.opacity(0.025)], startPoint: .leading, endPoint: .trailing))
+                    Rectangle().fill(LinearGradient(colors: [Color.clear, appData.colorScheme.mainColor.opacity(0.025)], startPoint: .leading, endPoint: .trailing))
 //                        appFormat.colorScheme.mainColor.opacity(0.1)
                     
                     ZStack(alignment: .leading) {

@@ -9,12 +9,19 @@ import SwiftUI
 
 @main
 struct AMApp: App {
-    let musicLibrary : MusicLibrary = MusicLibrary()
-    let appFormat : FormatData = FormatData(colorScheme: ColorData(mainColor: Color(hue: 0, saturation: 0, brightness: 0.5), accentColor: Color(hue: 0, saturation: 0, brightness: 0.55), deepColor: Color(hue: 0, saturation: 0, brightness: 0.6), accent: Color(hue: 0, saturation: 0, brightness: 1)), queueWidth: 250, playerHeight: 65, musicArtCorner: 4)
+    @ObservedObject var musicLibrary : MusicLibrary = MusicLibrary()
     
+    var appData = AppData()
+
     var body: some Scene {
         WindowGroup {
-            ContentView(library: musicLibrary, appFormat: appFormat)
+            ZStack() {
+                ContentView(library: musicLibrary, appData: appData)
+                
+                if !musicLibrary.loaded {
+                    LoadMask(library: musicLibrary, appData: appData)
+                }
+            }
         }
         .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)

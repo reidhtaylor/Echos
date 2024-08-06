@@ -11,20 +11,20 @@ import MusicKit
 
 struct Player: View {
     @ObservedObject var library: MusicLibrary
-    @State var appFormat: FormatData
+    @State var appData: AppData
     
     var content: ContentView
     var windowSize: CGSize
     
     var body: some View {
         ZStack {
-            MaterialBackground().colorMultiply(appFormat.colorScheme.deepColor).ignoresSafeArea()
+            MaterialBackground().colorMultiply(appData.colorScheme.deepColor).ignoresSafeArea()
             
             VStack(spacing:0) {
                 HStack(spacing:0) {
-                    appFormat.colorScheme.mainColor.colorInvert()
+                    appData.colorScheme.mainColor.colorInvert()
                         .frame(width: windowSize.width * library.getPlaybackProgress())
-                    appFormat.colorScheme.mainColor.colorInvert().opacity(0.2)
+                    appData.colorScheme.mainColor.colorInvert().opacity(0.2)
                 }
                 .frame(width: windowSize.width, height: 2)
                 .animation(.linear(duration: 0.01), value: library.getPlaybackProgress())
@@ -36,11 +36,11 @@ struct Player: View {
                 HStack(alignment: .center, spacing: 0) {
                     // Currently Playing
                     if library.currentlyPlaying != nil {
-                        content.listItem(height: appFormat.playerHeight, artwork: library.currentlyPlaying!.artwork!, mainTitle: library.currentlyPlaying!.title, subTitle: library.currentlyPlaying!.artistName)
+                        content.listItem(height: appData.appFormat.playerHeight, artwork: library.currentlyPlaying!.artwork!, mainTitle: library.currentlyPlaying!.title, subTitle: library.currentlyPlaying!.artistName)
                             .frame(maxWidth: windowSize.width / 3.0, alignment: .leading)
                     }
                     else {
-                        content.listItem(height: appFormat.playerHeight, artwork: nil, mainTitle: "Unknown Song", subTitle: "...")
+                        content.listItem(height: appData.appFormat.playerHeight, artwork: nil, mainTitle: "Unknown Song", subTitle: "...")
                             .frame(maxWidth: windowSize.width / 3.0, alignment: .leading)
                     }
                     
@@ -104,13 +104,13 @@ struct Player: View {
                     
                     // Playing next
                     let next = library.workingQueue.count > 1 ? library.workingQueue[1] : nil
-                    content.listItem(height: appFormat.playerHeight, artwork: next != nil ? next!.artwork : nil, mainTitle: "NEXT", subTitle: next != nil ? next!.title : "Unknown Title", fontSize: 12, subFontRatio: 1, subFontOpac: 0.4)
+                    content.listItem(height: appData.appFormat.playerHeight, artwork: next != nil ? next!.artwork : nil, mainTitle: "NEXT", subTitle: next != nil ? next!.title : "Unknown Title", fontSize: 12, subFontRatio: 1, subFontOpac: 0.4)
                         .environment(\.layoutDirection, .rightToLeft)
                         .frame(maxWidth: windowSize.width / 3.0, alignment: .trailing)
                 }
             }
         }
-        .frame(height: appFormat.playerHeight)
+        .frame(height: appData.appFormat.playerHeight)
     }
 }
 

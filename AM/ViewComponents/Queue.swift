@@ -12,7 +12,7 @@ import MusicKit
 
 struct Queue: View {
     @ObservedObject var library: MusicLibrary
-    @State var appFormat: FormatData
+    @State var appData: AppData
     
     var content: ContentView
     
@@ -21,18 +21,18 @@ struct Queue: View {
         DragGesture()
             .onChanged() { gesture in
                 if self.dragWindowInitial == -1.0 {
-                    self.dragWindowInitial = appFormat.queueWidth
+                    self.dragWindowInitial = appData.appFormat.queueWidth
                     if NSCursor.current != NSCursor.resizeLeftRight {
                         NSCursor.resizeLeftRight.push()
                     }
                 }
                 
-                self.appFormat.queueWidth = dragWindowInitial - gesture.translation.width
-                if self.appFormat.queueWidth > self.appFormat.queueRestriction.height {
-                    self.appFormat.queueWidth = self.appFormat.queueRestriction.height
+                self.appData.appFormat.queueWidth = dragWindowInitial - gesture.translation.width
+                if self.appData.appFormat.queueWidth > self.appData.appFormat.queueRestriction.height {
+                    self.appData.appFormat.queueWidth = self.appData.appFormat.queueRestriction.height
                 }
-                else if self.appFormat.queueWidth < self.appFormat.queueRestriction.width {
-                    self.appFormat.queueWidth = self.appFormat.queueRestriction.width
+                else if self.appData.appFormat.queueWidth < self.appData.appFormat.queueRestriction.width {
+                    self.appData.appFormat.queueWidth = self.appData.appFormat.queueRestriction.width
                 }
             }
             .onEnded() { gesture in
@@ -59,7 +59,7 @@ struct Queue: View {
 
     var body: some View {
         ZStack {
-            MaterialBackground().colorMultiply(appFormat.colorScheme.accentColor).ignoresSafeArea()
+            MaterialBackground().colorMultiply(appData.colorScheme.accentColor).ignoresSafeArea()
             
             // Queue Stack
             VStack(alignment: .leading, spacing:0) {
@@ -68,42 +68,42 @@ struct Queue: View {
                     if library.currentlyPlaying == nil {
 //                        Image(nsImage: NSImage(imageLiteralResourceName: "UnknownAlbum"))
                         ZStack {
-                            MaterialBackground().colorMultiply(appFormat.colorScheme.mainColor)
-                                .frame(width: appFormat.queueWidth - 30, height: appFormat.queueWidth - 30)
-                                .cornerRadius(appFormat.musicArtCorner * 2)
+                            MaterialBackground().colorMultiply(appData.colorScheme.mainColor)
+                                .frame(width: appData.appFormat.queueWidth - 30, height: appData.appFormat.queueWidth - 30)
+                                .cornerRadius(appData.appFormat.musicArtCorner * 2)
                                 .padding([.bottom], 5)
                             
                             Image(systemName: "music.note").resizable().aspectRatio(contentMode: .fit).opacity(0.2)
                                 .frame(width:70, height:70)
                         }
                         
-                        Text("No Songs in Queue").font(.system(size: 15)).lineLimit(1)
-                            .frame(maxWidth: appFormat.queueWidth - 30, alignment:.leading).opacity(0.4)
+                        Text("Nothing Playing").font(.system(size: 15)).lineLimit(1)
+                            .frame(maxWidth: appData.appFormat.queueWidth - 30, alignment:.leading).opacity(0.4)
                     }
                     else {
-                        ArtworkImage(library.currentlyPlaying!.artwork!, width: appFormat.queueWidth - 30, height: appFormat.queueWidth - 30)
-                            .cornerRadius(appFormat.musicArtCorner)
+                        ArtworkImage(library.currentlyPlaying!.artwork!, width: appData.appFormat.queueWidth - 30, height: appData.appFormat.queueWidth - 30)
+                            .cornerRadius(appData.appFormat.musicArtCorner)
                             .padding([.bottom], 5)
                         
                         Text(library.currentlyPlaying!.title).font(.system(size: 15)).lineLimit(1)
-                            .frame(maxWidth: appFormat.queueWidth - 30, alignment:.leading)
+                            .frame(maxWidth: appData.appFormat.queueWidth - 30, alignment:.leading)
                         Text(library.currentlyPlaying!.artistName).font(.system(size: 12)).opacity(0.5).lineLimit(1)
-                            .frame(maxWidth: appFormat.queueWidth - 30, alignment:.leading)
+                            .frame(maxWidth: appData.appFormat.queueWidth - 30, alignment:.leading)
                     }
                     
                     HStack(spacing:2) {
-                        appFormat.colorScheme.mainColor.colorInvert()
-                            .frame(width: (appFormat.queueWidth - 30) * library.getPlaybackProgress())
-                        appFormat.colorScheme.mainColor.colorInvert().opacity(0.2)
+                        appData.colorScheme.mainColor.colorInvert()
+                            .frame(width: (appData.appFormat.queueWidth - 30) * library.getPlaybackProgress())
+                        appData.colorScheme.mainColor.colorInvert().opacity(0.2)
                     }
-                    .frame(width: appFormat.queueWidth - 30, height: 3)
+                    .frame(width: appData.appFormat.queueWidth - 30, height: 3)
                     .animation(.linear(duration: 0.01), value: library.getPlaybackProgress())
                     .onTapGesture { location in
-                        library.setLivePlayback0to1(location.x / (appFormat.queueWidth - 30))
+                        library.setLivePlayback0to1(location.x / (appData.appFormat.queueWidth - 30))
                     }
                     
                     Text(library.getPlaybackString()).font(.system(size: 12)).opacity(0.5).lineLimit(1)
-                        .frame(maxWidth: appFormat.queueWidth - 30, alignment:.leading)
+                        .frame(maxWidth: appData.appFormat.queueWidth - 30, alignment:.leading)
                   
                     Text("Queue").font(.system(size: 20).bold())
                         .padding([.leading], 15)
@@ -112,7 +112,7 @@ struct Queue: View {
                 }
                 .padding([.leading, .top], 15)
                 
-                appFormat.colorScheme.mainColor.colorInvert().opacity(0.2).frame(height: 1)
+                appData.colorScheme.mainColor.colorInvert().opacity(0.2).frame(height: 1)
                 
                 // Queue Items
                 ZStack {
@@ -124,7 +124,7 @@ struct Queue: View {
                                     if q == itemDragging && !itemDragMoving {
                                         if horizontalDragVal > 0 {
                                             ZStack(alignment: .leading) {
-                                                MaterialBackground().colorMultiply(appFormat.colorScheme.mainColor)
+                                                MaterialBackground().colorMultiply(appData.colorScheme.mainColor)
                                                 
                                                 ZStack {
                                                     Color.black
@@ -138,7 +138,7 @@ struct Queue: View {
                                         }
                                         else {
                                             ZStack(alignment: .trailing) {
-                                                MaterialBackground().colorMultiply(appFormat.colorScheme.mainColor)
+                                                MaterialBackground().colorMultiply(appData.colorScheme.mainColor)
                                                 
                                                 ZStack {
                                                     Color.white
@@ -152,8 +152,8 @@ struct Queue: View {
                                         }
                                     }
                                     
-                                    queueItem(item: q, queueWidth: appFormat.queueWidth, visible: (!itemDragMoving || initialMoveIndex != i) && library.workingQueue.firstIndex(where: {$0 == q}) != 0)
-                                        .background(MaterialBackground().colorMultiply(library.currentlyPlaying != nil && q.title == library.currentlyPlaying!.title ? appFormat.colorScheme.accent : .clear))
+                                    queueItem(item: q, queueWidth: appData.appFormat.queueWidth, visible: (!itemDragMoving || initialMoveIndex != i) && library.workingQueue.firstIndex(where: {$0 == q}) != 0)
+                                        .background(MaterialBackground().colorMultiply(library.currentlyPlaying != nil && q.title == library.currentlyPlaying!.title ? appData.colorScheme.accent : .clear))
                                         .opacity(itemDropIndex == -1 ? 1 : 0.15)
                                         .offset(x: q == itemDragging && !itemDragMoving ? horizontalDragVal : 0, y: 0)
                                         .modifier(PressActions(
@@ -198,15 +198,15 @@ struct Queue: View {
                                             }
                                         ))
                                 }
-                                .frame(width: appFormat.queueWidth)
+                                .frame(width: appData.appFormat.queueWidth)
                                 
                                 if itemDropIndex != -1 && itemDropIndex == i + 1 {
-                                    queueItem(item: itemDragging!, queueWidth: appFormat.queueWidth)
+                                    queueItem(item: itemDragging!, queueWidth: appData.appFormat.queueWidth)
                                         .opacity(1)
                                 }
                             }
                             
-                            Text(library.workingQueue.count == 0 ? "Queue is Empty" : "End of Queue").font(.callout)
+                            Text(library.workingQueue.count == 0 ? "Empty" : "End of Queue").font(.callout)
                                 .frame(maxWidth: .infinity)
                                 .opacity(0.3)
                                 .padding(10)
@@ -222,7 +222,7 @@ struct Queue: View {
             Color.white.opacity(0.001)
                 .frame(width: dragWidth)
                 .ignoresSafeArea()
-                .offset(x:-appFormat.queueWidth / 2, y:0)
+                .offset(x:-appData.appFormat.queueWidth / 2, y:0)
                 .gesture(dragQueueWindow)
                 .onHover { inside in
                             if inside {
@@ -234,7 +234,7 @@ struct Queue: View {
                             }
                         }
         }
-        .frame(width: appFormat.queueWidth)
+        .frame(width: appData.appFormat.queueWidth)
         .onAppear() {
             NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDragged]) {
                 if itemDragging != nil {
@@ -248,17 +248,17 @@ struct Queue: View {
         .onChange(of: mouseDelta) {
             if !itemDragMoving {
                 horizontalDragVal += mouseDelta.x * 2
-                if horizontalDragVal > appFormat.queueWidth { horizontalDragVal = appFormat.queueWidth }
-                else if horizontalDragVal < -appFormat.queueWidth { horizontalDragVal = -appFormat.queueWidth }
+                if horizontalDragVal > appData.appFormat.queueWidth { horizontalDragVal = appData.appFormat.queueWidth }
+                else if horizontalDragVal < -appData.appFormat.queueWidth { horizontalDragVal = -appData.appFormat.queueWidth }
                 
-                if horizontalDragVal > (appFormat.queueWidth / 5) * CGFloat(3) {
+                if horizontalDragVal > (appData.appFormat.queueWidth / 5) * CGFloat(3) {
                     itemDragRemoveReady = true
                 }
                 else if itemDragRemoveReady {
                     itemDragRemoveReady = false
                 }
                 
-                if horizontalDragVal < -(appFormat.queueWidth / 5) * 3 {
+                if horizontalDragVal < -(appData.appFormat.queueWidth / 5) * 3 {
                     itemDragNextReady = true
                 }
                 else if itemDragNextReady {
@@ -287,7 +287,7 @@ struct Queue: View {
                 content.listItem(height: 40, artwork: item.artwork, mainTitle: item.title, subTitle: item.subtitle)
                     .padding(10)
                 
-                appFormat.colorScheme.mainColor.colorInvert().opacity(0.15)
+                appData.colorScheme.mainColor.colorInvert().opacity(0.15)
                     .frame(height: 1)
                     .padding([.leading], 60)
             }

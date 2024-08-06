@@ -12,7 +12,7 @@ import MusicKit
 struct PreviewAlbum: View {
     
     @ObservedObject var library: MusicLibrary
-    @State var appFormat: FormatData
+    @State var appData: AppData
     
     let content: ContentView
     
@@ -26,7 +26,7 @@ struct PreviewAlbum: View {
     var body: some View {
         GeometryReader { geom in
             ZStack {
-                MaterialBackground().colorMultiply(appFormat.colorScheme.mainColor).ignoresSafeArea()
+                MaterialBackground().colorMultiply(appData.colorScheme.mainColor).ignoresSafeArea()
                 
                 VStack (spacing: 0) {
                     if library.previewingPlaylist != nil {
@@ -75,13 +75,13 @@ struct PreviewAlbum: View {
                             .padding([.leading], 20)
                             .buttonStyle(.plain)
                             
-                            HStack(alignment: .bottom, spacing: 10) {
+                            HStack(alignment: .center, spacing: 20) {
                                 ArtworkImage(library.previewingAlbum!.artwork!, width: 200, height: 200)
-                                    .cornerRadius(appFormat.musicArtCorner * 2)
+                                    .cornerRadius(appData.appFormat.musicArtCorner * 2)
                                 
                                 VStack(alignment: .leading, spacing: 5) {
-                                    Text(library.previewingAlbum != nil ? library.previewingAlbum!.title : library.previewingPlaylist != nil ? library.previewingPlaylist!.name : "Title").font(.headline).lineLimit(1)
-                                    Text(library.previewingAlbum != nil ? library.previewingAlbum!.artistName : library.previewingPlaylist != nil ? library.previewingPlaylist!.shortDescription ?? "None" : "Artist").font(.callout).opacity(0.5).lineLimit(1)
+                                    Text(library.previewingAlbum != nil ? library.previewingAlbum!.title : library.previewingPlaylist != nil ? library.previewingPlaylist!.name : "Title").font(.largeTitle.bold()).lineLimit(1)
+                                    Text(library.previewingAlbum != nil ? library.previewingAlbum!.artistName : library.previewingPlaylist != nil ? library.previewingPlaylist!.shortDescription ?? "None" : "Artist").font(.title2).opacity(0.5).lineLimit(1)
                                 }
                             }
                             .frame(maxWidth: .infinity, alignment: .bottomLeading)
@@ -125,7 +125,7 @@ struct PreviewAlbum: View {
                         .padding([.horizontal], 20)
                         .padding([.vertical], 15)
                         
-                        appFormat.colorScheme.mainColor.colorInvert().opacity(0.2)
+                        appData.colorScheme.mainColor.colorInvert().opacity(0.2)
                             .frame(height: 1)
                     }
 
@@ -159,7 +159,7 @@ struct PreviewAlbum: View {
                 }
             }) {
                 ZStack {
-                    MaterialBackground().colorMultiply(appFormat.colorScheme.mainColor)
+                    MaterialBackground().colorMultiply(appData.colorScheme.mainColor)
                     
                     VStack(alignment: .leading, spacing: 0) {
                         HStack(spacing: 0) {
@@ -169,7 +169,7 @@ struct PreviewAlbum: View {
                             
                             if style == .playlistItem {
                                 ArtworkImage(song.artwork!, width: 35, height: 35)
-                                    .cornerRadius(appFormat.musicArtCorner)
+                                    .cornerRadius(appData.appFormat.musicArtCorner)
                                     .padding([.trailing], 15)
                             }
                             
@@ -190,7 +190,7 @@ struct PreviewAlbum: View {
                         .padding([.horizontal], 15)
                         .frame(height: 60)
                         
-                        appFormat.colorScheme.mainColor.colorInvert().opacity(0.2)
+                        appData.colorScheme.mainColor.colorInvert().opacity(0.2)
                             .frame(height: 1)
                     }
                 }
@@ -218,7 +218,7 @@ struct PreviewAlbum: View {
             
             Button(action: {} ) {
                 ZStack {
-                    MaterialBackground().colorMultiply(appFormat.colorScheme.mainColor).cornerRadius(appFormat.musicArtCorner)
+                    MaterialBackground().colorMultiply(appData.colorScheme.mainColor).cornerRadius(appData.appFormat.musicArtCorner)
                     Image(systemName: "ellipsis").resizable().aspectRatio(contentMode: .fit).frame(width: iconSize, height: iconSize).fontWeight(.bold)
                 }.frame(width: buttonSize, height: buttonSize)
             }.buttonStyle(.plain)
@@ -227,7 +227,7 @@ struct PreviewAlbum: View {
                 library.workingQueue.append(MusicPlayer.Queue.Entry(song))
             } ) {
                 ZStack {
-                    MaterialBackground().colorMultiply(appFormat.colorScheme.mainColor).cornerRadius(appFormat.musicArtCorner)
+                    MaterialBackground().colorMultiply(appData.colorScheme.mainColor).cornerRadius(appData.appFormat.musicArtCorner)
                     Image(systemName: "text.append").resizable().aspectRatio(contentMode: .fit).frame(width: iconSize, height: iconSize)
                 }.frame(width: buttonSize, height: buttonSize)
             }.buttonStyle(.plain)
@@ -236,7 +236,7 @@ struct PreviewAlbum: View {
                 library.workingQueue.insert(MusicPlayer.Queue.Entry(song), at: library.currentlyPlaying != nil ? 1 : 0)
             } ) {
                 ZStack {
-                    MaterialBackground().colorMultiply(appFormat.colorScheme.mainColor).cornerRadius(appFormat.musicArtCorner)
+                    MaterialBackground().colorMultiply(appData.colorScheme.mainColor).cornerRadius(appData.appFormat.musicArtCorner)
                     Image(systemName: "text.insert").resizable().aspectRatio(contentMode: .fit).frame(width: iconSize, height: iconSize)
                 }.frame(width: buttonSize, height: buttonSize)
             }.buttonStyle(.plain)
@@ -265,7 +265,7 @@ struct PreviewAlbum: View {
 }
 
 #Preview {
-    VStack {
-        
-    }
+    var lib : MusicLibrary = MusicLibrary()
+    let ad = AppData()
+    PreviewAlbum(library: lib, appData: ad, content: ContentView(library: lib, appData: ad))
 }
