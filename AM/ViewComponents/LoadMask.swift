@@ -13,17 +13,19 @@ struct LoadMask: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            ZStack {
-                Color(hue: 0, saturation: 0, brightness: 1).opacity(0.015)
-                    .ignoresSafeArea()
-                    .cornerRadius(10)
+            if library.loadDescription.count != 0 {
+                ZStack {
+                    Color(hue: 0, saturation: 0, brightness: 1).opacity(0.015)
+                        .ignoresSafeArea()
+                        .cornerRadius(10)
+                    
+                    Text(library.loadDescription).shadow(color:.black, radius: 5)
+                        .font(.footnote.bold())
+                }
+                .frame(width: 250, height: 50)
                 
-                Text(library.loadDescription).shadow(color:.black, radius: 5)
-                    .font(.footnote.bold())
+                Color.black.opacity(0).frame(height: 400)
             }
-            .frame(width: 250, height: 50)
-            
-            Color.black.opacity(0).frame(height: 400)
         }
     }
 }

@@ -8,44 +8,61 @@
 import SwiftUI
 //import iTunesLibrary
 import MusicKit
+import Combine
 
 
 struct Queue: View {
     @ObservedObject var library: MusicLibrary
-    @State var appData: AppData
+    @ObservedObject var appData: AppData
     
     var content: ContentView
     
+    @StateObject var musicProgressTracker: MusicProgressTracker
+    
+    @State var clearOn : CGFloat = 0.0
+    @State private var showAlert = false
+    
     @State var dragWindowInitial = -1.0
+    var dragHideCap : CGFloat = 30
+    @State var queueWidth = 30.0
+    @State var unhide : Bool = false
     var dragQueueWindow: some Gesture {
         DragGesture()
             .onChanged() { gesture in
                 if self.dragWindowInitial == -1.0 {
-                    self.dragWindowInitial = appData.appFormat.queueWidth
+                    self.dragWindowInitial = queueWidth
                     if NSCursor.current != NSCursor.resizeLeftRight {
                         NSCursor.resizeLeftRight.push()
                     }
                 }
                 
-                self.appData.appFormat.queueWidth = dragWindowInitial - gesture.translation.width
-                if self.appData.appFormat.queueWidth > self.appData.appFormat.queueRestriction.height {
-                    self.appData.appFormat.queueWidth = self.appData.appFormat.queueRestriction.height
+                queueWidth = dragWindowInitial - gesture.translation.width
+                if queueWidth > self.appData.appFormat.queueRestriction.height + 10 {
+                    queueWidth = self.appData.appFormat.queueRestriction.height + 10
                 }
-                else if self.appData.appFormat.queueWidth < self.appData.appFormat.queueRestriction.width {
-                    self.appData.appFormat.queueWidth = self.appData.appFormat.queueRestriction.width
+                else if self.queueWidth < self.appData.appFormat.queueRestriction.width - 10 {
+                    queueWidth = self.appData.appFormat.queueRestriction.width - 10
                 }
             }
             .onEnded() { gesture in
                 self.dragWindowInitial = -1.0
                 NSCursor.pop()
+                
+                if (queueWidth < self.appData.appFormat.queueRestriction.width) {
+                    self.appData.queueState = .hidden
+                }
+                else if (queueWidth > self.appData.appFormat.queueRestriction.height) {
+                    self.appData.queueState = .presenter
+                }
             }
     }
     let dragWidth = 4.0
     
-    @State var itemDragging: MusicPlayer.Queue.Entry? = nil
+    @State var itemDragging: PlayableItem? = nil
     @State var itemDropIndex = -1
     
     @State var horizontalDragVal = 0.0
+    let horizontalDragStep : Double = 25
     @State var itemDragRemoveReady = false
     @State var itemDragNextReady = false
     
@@ -58,233 +75,299 @@ struct Queue: View {
     @State var mouseDelta = CGPoint(x: 0.0, y: 0.0)
 
     var body: some View {
-        ZStack {
-            MaterialBackground().colorMultiply(appData.colorScheme.accentColor).ignoresSafeArea()
-            
-            // Queue Stack
-            VStack(alignment: .leading, spacing:0) {
-                // Queue Title
-                VStack(alignment: .leading) {
-                    if library.currentlyPlaying == nil {
-//                        Image(nsImage: NSImage(imageLiteralResourceName: "UnknownAlbum"))
-                        ZStack {
-                            MaterialBackground().colorMultiply(appData.colorScheme.mainColor)
-                                .frame(width: appData.appFormat.queueWidth - 30, height: appData.appFormat.queueWidth - 30)
-                                .cornerRadius(appData.appFormat.musicArtCorner * 2)
-                                .padding([.bottom], 5)
+        if (self.appData.queueState == .side || self.appData.queueState == .isolated) {
+            ZStack (alignment: .top) {
+                MaterialBackground().colorMultiply(appData.colorScheme.accentColor).ignoresSafeArea()
+                
+                // Queue Stack
+                VStack(alignment: .center, spacing:0) {
+
+                    // Queue Title
+                    VStack(alignment: .center) {
+                        if library.currentlyPlaying == nil {
+                            library.EmptyArt(appData, queueWidth - 30, queueWidth - 30)
                             
-                            Image(systemName: "music.note").resizable().aspectRatio(contentMode: .fit).opacity(0.2)
-                                .frame(width:70, height:70)
+                            Text("Nothing Playing").font(.system(size: 15)).lineLimit(1)
+                                .frame(maxWidth: queueWidth - 30, alignment:.leading).opacity(0.4)
+                        }
+                        else {
+                            if library.currentlyPlaying!.getArtwork() != nil {
+                                ArtworkImage(library.currentlyPlaying!.getArtwork()!, width: queueWidth - 30, height: queueWidth - 30)
+                                    .cornerRadius(appData.appFormat.musicArtCorner)
+                                    .padding([.bottom], 5)
+                            }
+                            else if library.currentlyPlaying!.getArtworkURL().count > 0 {
+                                AsyncImage(url: URL(string: library.currentlyPlaying!.getArtworkURL()))
+                                    .frame(width: queueWidth - 30, height: queueWidth - 30)
+                                    .cornerRadius(appData.appFormat.musicArtCorner)
+                                    .padding([.bottom], 5)
+                            }
+                            else {
+                                library.EmptyArt(appData, queueWidth - 30, queueWidth - 30)
+                                    .cornerRadius(appData.appFormat.musicArtCorner)
+                                    .padding([.bottom], 5)
+                            }
+                            
+                            Text(library.currentlyPlaying!.getName()).font(.system(size: 15)).lineLimit(1)
+                                .frame(maxWidth: queueWidth - 30, alignment:.leading)
+                            Text(library.currentlyPlaying!.getArtistName()).font(.system(size: 12)).opacity(0.5).lineLimit(1)
+                                .frame(maxWidth: queueWidth - 30, alignment:.leading)
                         }
                         
-                        Text("Nothing Playing").font(.system(size: 15)).lineLimit(1)
-                            .frame(maxWidth: appData.appFormat.queueWidth - 30, alignment:.leading).opacity(0.4)
-                    }
-                    else {
-                        ArtworkImage(library.currentlyPlaying!.artwork!, width: appData.appFormat.queueWidth - 30, height: appData.appFormat.queueWidth - 30)
-                            .cornerRadius(appData.appFormat.musicArtCorner)
-                            .padding([.bottom], 5)
+ 
+                        HStack (spacing: 0) {
+                            appData.colorScheme.mainColor.colorInvert()
+                                .frame(width: (queueWidth - 30) * musicProgressTracker.progress)
+                            appData.colorScheme.mainColor.colorInvert().opacity(0.2)
+                        }
+                        .frame(width: queueWidth - 30, height: 3)
+                        .contentShape(Rectangle().inset(by: -5))
+                        .onChange(of: musicProgressTracker.progress, { oldValue, newValue in
+                            musicProgressTracker.progressDuration = newValue
+                        })
+                        .animation(.linear(duration: musicProgressTracker.progressDuration), value: musicProgressTracker.progress)
+                        .onTapGesture { location in
+                            library.setLivePlayback0to1(location.x / (queueWidth - 30))
+                        }
                         
-                        Text(library.currentlyPlaying!.title).font(.system(size: 15)).lineLimit(1)
-                            .frame(maxWidth: appData.appFormat.queueWidth - 30, alignment:.leading)
-                        Text(library.currentlyPlaying!.artistName).font(.system(size: 12)).opacity(0.5).lineLimit(1)
-                            .frame(maxWidth: appData.appFormat.queueWidth - 30, alignment:.leading)
-                    }
-                    
-                    HStack(spacing:2) {
-                        appData.colorScheme.mainColor.colorInvert()
-                            .frame(width: (appData.appFormat.queueWidth - 30) * library.getPlaybackProgress())
-                        appData.colorScheme.mainColor.colorInvert().opacity(0.2)
-                    }
-                    .frame(width: appData.appFormat.queueWidth - 30, height: 3)
-                    .animation(.linear(duration: 0.01), value: library.getPlaybackProgress())
-                    .onTapGesture { location in
-                        library.setLivePlayback0to1(location.x / (appData.appFormat.queueWidth - 30))
-                    }
-                    
-                    Text(library.getPlaybackString()).font(.system(size: 12)).opacity(0.5).lineLimit(1)
-                        .frame(maxWidth: appData.appFormat.queueWidth - 30, alignment:.leading)
-                  
-                    Text("Queue").font(.system(size: 20).bold())
-                        .padding([.leading], 15)
-                        .padding([.bottom], 10)
-                        .padding([.top], 20)
-                }
-                .padding([.leading, .top], 15)
-                
-                appData.colorScheme.mainColor.colorInvert().opacity(0.2).frame(height: 1)
-                
-                // Queue Items
-                ZStack {
-                    ScrollView(showsIndicators: false) {
-                        VStack(spacing: 0) {
-                            ForEach(0..<library.workingQueue.count, id: \.self) { i in
-                                let q = library.workingQueue[i]
-                                ZStack(alignment: horizontalDragVal > 0 ? .leading : .trailing) {
-                                    if q == itemDragging && !itemDragMoving {
-                                        if horizontalDragVal > 0 {
-                                            ZStack(alignment: .leading) {
-                                                MaterialBackground().colorMultiply(appData.colorScheme.mainColor)
-                                                
-                                                ZStack {
-                                                    Color.black
-                                                        .opacity(itemDragRemoveReady ? 0.4 : 0)
-                                                    
-                                                    Image(systemName: "trash.fill")
-                                                }
-                                                    .frame(maxWidth: itemDragRemoveReady ? .infinity : 60)
-                                                    .animation(.easeInOut(duration: 0.1), value: itemDragRemoveReady)
-                                            }.frame(width: horizontalDragVal, height: 60)
-                                        }
-                                        else {
-                                            ZStack(alignment: .trailing) {
-                                                MaterialBackground().colorMultiply(appData.colorScheme.mainColor)
-                                                
-                                                ZStack {
-                                                    Color.white
-                                                        .opacity(itemDragNextReady ? 0.13 : 0)
-                                                    
-                                                    Image(systemName: "text.insert")
-                                                }
-                                                    .frame(maxWidth: itemDragNextReady ? .infinity : 60)
-                                                    .animation(.easeInOut(duration: 0.1), value: itemDragNextReady)
-                                            }.frame(width: -horizontalDragVal, height: 60)
+                        Text(library.getTimeString(CGFloat(musicProgressTracker.timerCounter))).font(.system(size: 12)).opacity(0.5).lineLimit(1)
+                            .frame(maxWidth: queueWidth - 30, alignment:.leading)
+                        
+                        if self.appData.queueState != .isolated {
+                            HStack(alignment: .bottom) {
+                                Text("Queue").font(.system(size: 20).bold())
+                                    .padding([.leading], 15)
+                                    .padding([.bottom], 10)
+                                    .padding([.top], 20)
+                                
+                                Spacer()
+                                
+                                if (library.queue.count > library.queueIndex + 1) {
+                                    Button(action: {
+                                        showAlert = true
+                                    }) {
+                                        ZStack(alignment: .center) {
+                                            MaterialBackground().colorMultiply(self.appData.colorScheme.mainColor).colorInvert().opacity(0.05)
+                                                .cornerRadius(4)
+                                            
+                                            Text("Clear").font(.system(size: 10)).opacity(0.5)
                                         }
                                     }
-                                    
-                                    queueItem(item: q, queueWidth: appData.appFormat.queueWidth, visible: (!itemDragMoving || initialMoveIndex != i) && library.workingQueue.firstIndex(where: {$0 == q}) != 0)
-                                        .background(MaterialBackground().colorMultiply(library.currentlyPlaying != nil && q.title == library.currentlyPlaying!.title ? appData.colorScheme.accent : .clear))
-                                        .opacity(itemDropIndex == -1 ? 1 : 0.15)
-                                        .offset(x: q == itemDragging && !itemDragMoving ? horizontalDragVal : 0, y: 0)
-                                        .modifier(PressActions(
-                                            onPress: {
-                                                itemDragging = q
-                                                initialMoveIndex = i
-                                                lastMouseLocation = self.mouseLocation
-                                                horizontalDragVal = 0
-                                                verticalDragVal = 0
-                                                itemDragRemoveReady = false
-                                                itemDragNextReady = false
-                                                itemDragMoving = false
-                                            },
-                                            onRelease: {
-                                                if itemDragMoving && itemDropIndex != -1 {
-                                                    library.workingQueue.remove(at: initialMoveIndex)
-                                                    
-                                                    let index = itemDropIndex >= initialMoveIndex + 1 ? itemDropIndex - 1 : itemDropIndex
-                                                    if index >= library.workingQueue.count {
-                                                        library.workingQueue.append(itemDragging!)
-                                                    }
-                                                    else {
-                                                        library.workingQueue.insert(itemDragging!, at: index)
-                                                    }
-                                                }
-                                                else if itemDragRemoveReady {
-                                                    let ind = library.workingQueue.firstIndex(where: {$0 == itemDragging})
-                                                    if ind != nil {
-                                                        library.workingQueue.remove(at: ind!)
-                                                    }
-                                                }
-                                                else if itemDragNextReady {
-                                                    library.workingQueue.remove(at: library.workingQueue.firstIndex(where: {$0 == itemDragging})!)
-                                                    library.workingQueue.insert(itemDragging!, at: 1)
-                                                }
-                                                
-                                                itemDragging = nil
-                                                itemDropIndex = -1
-                                                itemDragMoving = false
-                                                itemDragRemoveReady = false
-                                                itemDragNextReady = false
-                                            }
-                                        ))
-                                }
-                                .frame(width: appData.appFormat.queueWidth)
-                                
-                                if itemDropIndex != -1 && itemDropIndex == i + 1 {
-                                    queueItem(item: itemDragging!, queueWidth: appData.appFormat.queueWidth)
-                                        .opacity(1)
+                                    .buttonStyle(.plain)
+                                    .frame(width: 65, height: 18)
+                                    .padding(.bottom, 12)
+                                    .padding(.trailing, 12)
+                                    .opacity(clearOn)
+                                    .disabled(clearOn == 0)
+                                    .animation(.linear(duration: 0.07), value: clearOn)
+                                    .confirmationDialog("Clear Queue: Are you sure?", isPresented: $showAlert) {
+                                        Button("Cancel", role: .cancel) { }
+                                        Button("Clear", role: .destructive) {
+                                            library.clearQueue()
+                                        }
+                                        .foregroundColor(.red)
+                                    } message: {
+                                        Text("This action cannot be undone.")
+                                    }
                                 }
                             }
-                            
-                            Text(library.workingQueue.count == 0 ? "Empty" : "End of Queue").font(.callout)
-                                .frame(maxWidth: .infinity)
-                                .opacity(0.3)
-                                .padding(10)
-                                .padding([.bottom], 200)
+                            .onHover() { over in
+                                clearOn = over ? 1 : 0
+                            }
+                        }
+                        else {
+                            Rectangle().fill(.clear)
+                                .frame(height: 10)
                         }
                     }
-                    .padding([.top], 3)
-//                    .animation(.linear(duration: 0.2), value: library.workingQueue)
-//                    .transition(.scale)
-                }
-            }
-            
-            Color.white.opacity(0.001)
-                .frame(width: dragWidth)
-                .ignoresSafeArea()
-                .offset(x:-appData.appFormat.queueWidth / 2, y:0)
-                .gesture(dragQueueWindow)
-                .onHover { inside in
-                            if inside {
-                                if NSCursor.current != NSCursor.resizeLeftRight {
-                                    NSCursor.resizeLeftRight.push()
+                    .padding([.top], 15)
+                    
+                    appData.colorScheme.mainColor.colorInvert().opacity(0.2).frame(height: 1)
+                    
+                    // Queue Items
+                    ZStack {
+                        ScrollView(showsIndicators: false) {
+                            LazyVStack(spacing: 0) {
+                                // Case for no previous item to display dragging item after
+                                if itemDropIndex == 0 && itemDragging != nil {
+                                    queueItem(item: itemDragging!, queueWidth: queueWidth)
+                                        .opacity(1)
                                 }
-                            } else if dragWindowInitial == -1.0 {
-                                NSCursor.pop()
+                                
+                                ForEach(0..<library.queue.count, id: \.self) { i in
+                                    ZStack(alignment: horizontalDragVal > 0 ? .leading : .trailing) {
+                                        let q = library.queue[i]
+                                        if (i == initialMoveIndex && itemDragging != nil) && !itemDragMoving && abs(horizontalDragVal) > horizontalDragStep {
+                                            if horizontalDragVal > 0 {
+                                                ZStack(alignment: .leading) {
+                                                    MaterialBackground().colorMultiply(.black).opacity(0.7)
+                                                    ZStack {
+                                                        appData.colorScheme.nah
+                                                            .opacity(itemDragRemoveReady ? 0.3 : 0)
+                                                        
+                                                        Image(systemName: "trash.fill")
+                                                    }
+                                                    .frame(maxWidth: itemDragRemoveReady ? .infinity : 60)
+                                                    .animation(.easeInOut(duration: 0.1), value: itemDragRemoveReady)
+                                                }.frame(width: (itemDragRemoveReady ? queueWidth : horizontalDragVal), height: 60)
+                                            }
+                                            else {
+                                                ZStack(alignment: .trailing) {
+                                                    MaterialBackground().colorMultiply(.black).opacity(0.7)
+                                                    ZStack {
+                                                        appData.colorScheme.accent
+                                                            .opacity(itemDragNextReady ? 0.3 : 0)
+                                                        
+                                                        // Item is currently playing (display restart)
+                                                        if (initialMoveIndex == library.queueIndex) {
+                                                            Image(systemName: "gobackward")
+                                                        }
+                                                        else {
+                                                            Image(systemName: "text.line.first.and.arrowtriangle.forward")
+                                                        }
+                                                    }
+                                                    .frame(maxWidth: itemDragNextReady ? .infinity : 60)
+                                                    .animation(.easeInOut(duration: 0.1), value: itemDragNextReady)
+                                                }.frame(width: (itemDragNextReady ? queueWidth : -horizontalDragVal), height: 60)
+                                            }
+                                        }
+                                        
+                                        queueItem(item: q, queueWidth: queueWidth, visible: (!itemDragMoving || initialMoveIndex != i))
+                                            .background(MaterialBackground().colorMultiply(library.currentlyPlaying != nil && i == library.queueIndex ? appData.colorScheme.accent : .clear))
+                                            .opacity(itemDropIndex == -1 ? i >= library.queueIndex ? 1 : 0.45 : 0.15)
+                                            .offset(x: (i == initialMoveIndex && itemDragging != nil) && !itemDragMoving && abs(horizontalDragVal) > horizontalDragStep ?
+                                                    (itemDragNextReady ? queueWidth : (itemDragRemoveReady ? -queueWidth : horizontalDragVal))
+                                                    : 0, y: 0)
+                                            .modifier(PressActions(
+                                                onPress: {
+                                                    if itemDragging != nil && itemDragging != q { return }
+                                                    
+                                                    print("Press: " + q.getName())
+                                                    itemDragging = q
+                                                    initialMoveIndex = i
+                                                    lastMouseLocation = self.mouseLocation
+                                                    horizontalDragVal = 0
+                                                    verticalDragVal = 0
+                                                    itemDragRemoveReady = false
+                                                    itemDragNextReady = false
+                                                    itemDragMoving = false
+                                                },
+                                                onRelease: {
+                                                    if itemDragging == q {
+                                                        print("Release: " + q.getName())
+                                                        if itemDragMoving && itemDropIndex != -1 {
+                                                            library.moveItemInQueue(initialMoveIndex, itemDropIndex)
+                                                        }
+                                                        else if itemDragRemoveReady {
+                                                            library.removeItemFromQueue(initialMoveIndex)
+                                                        }
+                                                        else if itemDragNextReady {
+                                                            // Restart song
+                                                            if initialMoveIndex == library.queueIndex {
+                                                                library.setLivePlayback0to1(0)
+                                                            }
+                                                            else {
+                                                                library.moveItemInQueue(initialMoveIndex, library.queueIndex + 1)
+                                                            }
+                                                            
+                                                        }
+                                                        else if initialMoveIndex != library.queueIndex || (abs(horizontalDragVal) < horizontalDragStep) {
+                                                            Task {
+                                                                await library.playSong(initialMoveIndex)
+                                                            }
+                                                        }
+                                                    }
+                                                    else {
+                                                        print("Release Canceled on " + q.getName())
+                                                    }
+                                                    
+                                                    itemDragging = nil
+                                                    itemDropIndex = -1
+                                                    itemDragMoving = false
+                                                    itemDragRemoveReady = false
+                                                    itemDragNextReady = false
+                                                }
+                                            ))
+                                            .contextMenu {
+                                                DefaultDraws.ContextMenuPlayable(q, library, content)
+                                            }
+                                    }
+                                    .frame(width: queueWidth)
+                                    
+                                    // Display new position for dragging item
+                                    if itemDropIndex == i + 1 && itemDragging != nil {
+                                        queueItem(item: itemDragging!, queueWidth: queueWidth)
+                                            .opacity(1)
+                                    }
+                                    
+                                    if (i == library.queueIndex - 1) {
+                                        HStack(alignment: .bottom, spacing: 0) {
+                                            Text(i + 1 >= library.queue.count ? "Complete" : "Playing").font(.title2).bold()
+                                                .shadow(color:.black.opacity(0.5), radius:5, x:4, y:4)
+                                                .lineLimit(1)
+                                                .frame(height: 40)
+                                            Spacer()
+                                        }
+                                        .padding(.leading, 15)
+                                    }
+                                }
+                                
+                                Text(library.queue.count == 0 ? "Empty" : "End of Queue").font(.callout)
+                                    .frame(maxWidth: .infinity)
+                                    .opacity(0.3)
+                                    .padding(10)
+                                    .padding([.bottom], 200)
                             }
                         }
-        }
-        .frame(width: appData.appFormat.queueWidth)
-        .onAppear() {
-            NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDragged]) {
-                if itemDragging != nil {
-                    mouseDelta.x = self.mouseLocation.x - lastMouseLocation.x
-                    mouseDelta.y = self.mouseLocation.y - lastMouseLocation.y
+                        .padding([.top], 3)
+                    }
                 }
-                lastMouseLocation = self.mouseLocation
-                return $0
+                .padding(.top, self.appData.queueState == .isolated ? 20 : 0)
+                
+                Color.white.opacity(0.001)
+                    .frame(width: dragWidth)
+                    .ignoresSafeArea()
+                    .offset(x:-queueWidth / 2, y:0)
+                    .gesture(dragQueueWindow)
+                    .onHover { inside in
+                        if inside {
+                            if NSCursor.current != NSCursor.resizeLeftRight {
+                                NSCursor.resizeLeftRight.push()
+                            }
+                        } else if dragWindowInitial == -1.0 {
+                            NSCursor.pop()
+                        }
+                    }
             }
-        }
-        .onChange(of: mouseDelta) {
-            if !itemDragMoving {
-                horizontalDragVal += mouseDelta.x * 2
-                if horizontalDragVal > appData.appFormat.queueWidth { horizontalDragVal = appData.appFormat.queueWidth }
-                else if horizontalDragVal < -appData.appFormat.queueWidth { horizontalDragVal = -appData.appFormat.queueWidth }
-                
-                if horizontalDragVal > (appData.appFormat.queueWidth / 5) * CGFloat(3) {
-                    itemDragRemoveReady = true
+            .frame(width: queueWidth)
+            .onChange(of: NSApplication.shared.windows.first?.frame, { oldSize, newSize in
+                if self.appData.queueState == .isolated {
+                    queueWidth = newSize!.width
                 }
-                else if itemDragRemoveReady {
-                    itemDragRemoveReady = false
-                }
-                
-                if horizontalDragVal < -(appData.appFormat.queueWidth / 5) * 3 {
-                    itemDragNextReady = true
-                }
-                else if itemDragNextReady {
-                    itemDragNextReady = false
-                }
-            }
-            
-            if !itemDragRemoveReady && !itemDragNextReady && abs(horizontalDragVal) < 10 {
-                verticalDragVal += mouseDelta.y
-                
-                if itemDragMoving {
-                    itemDropIndex = min(library.workingQueue.count, max(1, initialMoveIndex - Int(floor(verticalDragVal / 60.0))))
+            })
+            .opacity(queueWidth < self.appData.appFormat.queueRestriction.width || queueWidth > self.appData.appFormat.queueRestriction.height ? 0.3 : 1)
+            .onAppear() {
+                NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDragged]) {
+                    if itemDragging != nil {
+                        mouseDelta.x = self.mouseLocation.x - lastMouseLocation.x
+                        mouseDelta.y = self.mouseLocation.y - lastMouseLocation.y
+                    }
+                    lastMouseLocation = self.mouseLocation
+                    mouseDeltaChanged()
+                    return $0
                 }
                 
-                if !itemDragMoving && abs(verticalDragVal) > 20 {
-                    itemDragMoving = true
-                    itemDropIndex = initialMoveIndex
-                }
+                musicProgressTracker.assign("QUEUE")
+                
+                queueWidth = self.appData.appFormat.queueWidth
             }
         }
     }
     
-    private func queueItem(item: ApplicationMusicPlayer.Queue.Entry, queueWidth: CGFloat, visible: Bool = true) -> some View {
+    private func queueItem(item: PlayableItem, queueWidth: CGFloat, visible: Bool = true) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             if visible {
-                content.listItem(height: 40, artwork: item.artwork, mainTitle: item.title, subTitle: item.subtitle)
+                content.listItem(height: 40, artwork: item.getArtwork(), mainTitle: item.getName(), subTitle: item.getArtistName())
                     .padding(10)
                 
                 appData.colorScheme.mainColor.colorInvert().opacity(0.15)
@@ -294,19 +377,46 @@ struct Queue: View {
         }.frame(width: queueWidth, alignment: .leading)
     }
     
-    private func getItem(_ id: String) -> MusicPlayer.Queue.Entry! {
-        for q in library.workingQueue {
-            if q.id == id {
-                return q
+    private func mouseDeltaChanged() {
+        if !itemDragMoving {
+            horizontalDragVal += mouseDelta.x * 2
+            if horizontalDragVal > queueWidth { horizontalDragVal = queueWidth }
+            else if horizontalDragVal < -queueWidth { horizontalDragVal = -queueWidth }
+            
+            if horizontalDragVal > (queueWidth / 5) * CGFloat(3) {
+                itemDragRemoveReady = true
+            }
+            else if itemDragRemoveReady {
+                itemDragRemoveReady = false
+            }
+            
+            if horizontalDragVal < -(queueWidth / 5) * 3 {
+                itemDragNextReady = true
+            }
+            else if itemDragNextReady {
+                itemDragNextReady = false
             }
         }
-        return nil
+        
+        if !itemDragRemoveReady && !itemDragNextReady && abs(horizontalDragVal) < horizontalDragStep {
+            verticalDragVal += mouseDelta.y
+            
+            if itemDragMoving {
+                itemDropIndex = min(library.queue.count, max(0, initialMoveIndex - Int(floor(verticalDragVal / 60.0))))
+            }
+            
+            if !itemDragMoving && abs(verticalDragVal) > 20 {
+                itemDragMoving = true
+                itemDropIndex = initialMoveIndex
+            }
+        }
     }
 }
 
 struct PressActions: ViewModifier {
     @State var pressed = false
     var onPress: () -> Void
+    var onDrag: () -> Void = {}
     var onRelease: () -> Void
     func body(content: Content) -> some View {
         content
@@ -317,6 +427,7 @@ struct PressActions: ViewModifier {
                             onPress()
                             pressed = true
                         }
+                        onDrag()
                     })
                     .onEnded({ _ in
                         onRelease()
